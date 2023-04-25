@@ -1,0 +1,8 @@
+[deps]
+CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
+DifferentiableCollisions = "64b45163-ce2a-43f6-8f64-55d720633796"
+GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
+MeshCat = "283c5d60-a78f-5afe-a0af-af636b173e11"
+MeshCatMechanisms = "6ad125db-dd91-5488-b820-c1df6aab299d"
+RigidBodyDynamics = "366cf18f-59d5-5db9-a4de-86a9f6786172"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
