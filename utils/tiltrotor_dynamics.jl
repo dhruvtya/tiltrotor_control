@@ -103,6 +103,7 @@ function hermite_simpson(model::NamedTuple, ode, x1::Vector, x2::Vector, u, dt::
     fm = ode(model, xm, u)
     return fm - ẋm
 end
+
 function animate_tiltrotor_mrp(X, dt)
     vis = Visualizer()
     urdf = joinpath(@__DIR__,"urdf/tiltrotor.urdf")
