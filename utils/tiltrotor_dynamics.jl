@@ -94,3 +94,12 @@ function rk4(model,ode,x,u,dt)
     k4 = dt*ode(model,x + k3, u)
     x + (1/6)*(k1 + 2*k2 + 2*k3 + k4)
 end
+
+function hermite_simpson(model::NamedTuple, ode, x1::Vector, x2::Vector, u, dt::Real)::Vector
+    f1 = ode(model, x1, u)
+    f2 = ode(model, x2, u)
+    xm = 0.5*(x1 + x2) + (dt/8.0)*(f1 - f2)
+    ẋm = (-3/(2.0*dt))*(x1 - x2) - 0.25*(f1 + f2)
+    fm = ode(model, xm, u)
+    return fm - ẋm
+end
