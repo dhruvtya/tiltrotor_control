@@ -94,3 +94,24 @@ function rk4(model,ode,x,u,dt)
     k4 = dt*ode(model,x + k3, u)
     x + (1/6)*(k1 + 2*k2 + 2*k3 + k4)
 end
+
+function animate_tiltrotor_mrp(X, dt)
+    vis = Visualizer()
+    urdf = joinpath(@__DIR__,"urdf/tiltrotor.urdf")
+    robot = parse_urdf(urdf)
+    remove_fixed_tree_joints!(robot)
+
+    mvis = MechanismVisualizer(robot, URDFVisuals(urdf), vis)
+    # settransform!(vis, Translation(0., 0, 3))
+    # set_configuration!(mvis, [1.5, -1.5])
+    anim = Animation(floor(Int,1/dt))
+    for k = 1:length(X)
+        atframe(anim, k) do
+            p = Xsim[k][7:9]
+            settransform!(vis, Translation(X[k][1], X[k][2], X[k][3]) ∘ LinearMap(1.5*(dcm_from_mrp(p))))
+            set_configuration!(mvis, [X[k][13], X[k][14]])
+        end
+    end
+    setanimation!(vis, anim)
+    return render(vis)
+end
