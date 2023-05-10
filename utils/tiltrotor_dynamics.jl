@@ -95,7 +95,7 @@ function tiltrotor_dynamics_mrp(model::NamedTuple,x,u)
 
     F = F_thrusters + L_wing + D_wing
 
-    f = mass*gravity + Q*F # forces in world frame
+    f = Q'*mass*gravity + F # forces in world frame
 
     # Moments due to propellers
     M_thrusters = [M_r*sin(δ_r) + M_l*sin(δ_l); 0; M_r*cos(δ_r) + M_l*cos(δ_l)]
@@ -104,8 +104,8 @@ function tiltrotor_dynamics_mrp(model::NamedTuple,x,u)
 
     # this is xdot 
     return [
-        v
-        f/mass
+        Q*v
+        f/mass - skew(ω)*v
         ((1+norm(p)^2)/4)*(I + 2*(skew(p)^2 + skew(p))/(1+norm(p)^2))*ω
         J\(τ - cross(ω,J*ω))
         δ_l_dot
@@ -155,7 +155,7 @@ function tiltrotor_dynamics_quat(model::NamedTuple,x,u)
 
     F = F_thrusters + L_wing + D_wing
 
-    f = mass*gravity + Q*F # forces in world frame
+    f = Q'*mass*gravity + F # forces in world frame
 
     # Moments due to propellers
     M_thrusters = [M_r*sin(δ_r) + M_l*sin(δ_l); 0; M_r*cos(δ_r) + M_l*cos(δ_l)]
@@ -164,8 +164,8 @@ function tiltrotor_dynamics_quat(model::NamedTuple,x,u)
 
     # this is xdot 
     return [
-        v
-        f/mass
+        Q*v
+        f/mass - skew(ω)*v
         0.5*L_op(quat)*H*ω
         J\(τ - cross(ω,J*ω)) # J\(τ - skew(ω)*J*ω) 
         δ_l_dot
