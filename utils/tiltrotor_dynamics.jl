@@ -19,7 +19,7 @@ function skew(ω::Vector)
 end
 
 # quaternion utilities
-function L(q)
+function L_op(q)
     s = q[1]
     v = q[2:4]
     L = [s    -v';
@@ -28,11 +28,11 @@ function L(q)
 end
 
 function qtoQ(q)
-    return H'*T*L(q)*T*L(q)*H
+    return H'*T*L_op(q)*T*L_op(q)*H
 end
 
 function G(q)
-    return G = L(q)*H
+    return G = L_op(q)*H
 end
 
 function rptoq(ϕ)
@@ -118,12 +118,12 @@ function tiltrotor_dynamics_quat(model::NamedTuple,x,u)
     
     r = x[1:3]                  # position in world frame 
     v = x[4:6]                  # velocity in body frame 
-    q = x[7:10]/norm(x[7:10])   # normalize q just to be careful
+    quat = x[7:10]/norm(x[7:10])   # normalize q just to be careful
     ω = x[11:13]                # angular velocity 
     δ_l = x[14]                 # left rotor angle
     δ_r = x[15]                 # right rotor angle
 
-    Q = qtoQ(q) # Rotation matrix from body to world frame
+    Q = qtoQ(quat) # Rotation matrix from body to world frame
 
     mass = model.mass
     J = model.J
@@ -166,7 +166,7 @@ function tiltrotor_dynamics_quat(model::NamedTuple,x,u)
     return [
         v
         f/mass
-        0.5*L(q)*H*ω
+        0.5*L_op(quat)*H*ω
         J\(τ - cross(ω,J*ω)) # J\(τ - skew(ω)*J*ω) 
         δ_l_dot
         δ_r_dot
@@ -204,8 +204,27 @@ function animate_tiltrotor_mrp(X, dt)
     for k = 1:length(X)
         mc.atframe(anim, k) do
             p = X[k][7:9]
-            mc.settransform!(vis, Translation(X[k][1], X[k][2], X[k][3]) ∘ LinearMap(1.5*(dcm_from_mrp(p))))
+            mc.settransform!(vis, Translation(X[k][1], X[k][2], X[k][3]) ∘ LinearMap((dcm_from_mrp(p))))
             set_configuration!(mvis, [X[k][13], X[k][14]])
+        end
+    end
+    mc.setanimation!(vis, anim)
+    return mc.render(vis)
+end
+
+function animate_tiltrotor_quat(X, dt)
+    vis = mc.Visualizer()
+    urdf = joinpath(@__DIR__,"../urdf/tiltrotor.urdf")
+    robot = parse_urdf(urdf)
+    remove_fixed_tree_joints!(robot)
+
+    mvis = MechanismVisualizer(robot, URDFVisuals(urdf), vis)
+    anim = mc.Animation(floor(Int,1/dt))
+    for k = 1:length(X)
+        mc.atframe(anim, k) do
+            q = QuatRotation(X[k][7], X[k][8], X[k][9], X[k][10])
+            mc.settransform!(vis, Translation(X[k][1], X[k][2], X[k][3]) ∘ LinearMap(qtoQ(q)))
+            set_configuration!(mvis, [X[k][14], X[k][15]])
         end
     end
     mc.setanimation!(vis, anim)
